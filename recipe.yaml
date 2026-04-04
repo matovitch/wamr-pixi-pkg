@@ -1,0 +1,36 @@
+context:
+    name: libwamr
+    version: "2.4.4"
+
+package:
+    name: ${{ name|lower }}
+    version: ${{ version }}
+
+source:
+    url: https://codeload.github.com/bytecodealliance/wasm-micro-runtime/zip/refs/tags/WAMR-${{ version }}
+    sha256: d05b79a0acc4f30cbc1a2c6d8b66234943f2e427224375f4e0d6d12b4d4862db
+
+build:
+    number: 0
+    script:
+        - cd product-mini/platforms/linux
+        - mkdir build && cd build
+        - cmake .. -G Ninja -DCMAKE_INSTALL_PREFIX=$PREFIX -DBUILD_SHARED_LIBS=ON -DWAMR_DISABLE_WRITE_GS_BASE=1 -DWAMR_BUILD_INTERP=1 -DWAMR_BUILD_FAST_INTERP=1 -DWAMR_BUILD_LIBC_WASI=1
+        - ninja install
+        - cmake .. -G Ninja -DCMAKE_INSTALL_PREFIX=$PREFIX -DBUILD_SHARED_LIBS=OFF -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DWAMR_DISABLE_WRITE_GS_BASE=1 -DWAMR_BUILD_INTERP=1 -DWAMR_BUILD_FAST_INTERP=1 -DWAMR_BUILD_LIBC_WASI=1
+        - ninja install
+        - mkdir -p $PREFIX/include/wamr
+        - find $PREFIX/include -maxdepth 1 -name "*.h" -exec mv {} $PREFIX/include/wamr/ \;
+
+requirements:
+    build:
+        - ${{ compiler('c') }}
+        - ${{ compiler('cxx') }}
+        - cmake
+        - ninja
+
+tests:
+    - script:
+        - iwasm --version
+        - test -f $PREFIX/include/wamr/wasm_export.h
+        - test -f $PREFIX/include/wamr/wasm_c_api.h

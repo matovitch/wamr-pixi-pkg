@@ -1,0 +1,12 @@
+[workspace]
+channels = ["conda-forge"]
+name = "tup-pixi-pkg"
+platforms = ["linux-64"]
+version = "0.1.0"
+
+[tasks]
+build = "rattler-build build --recipe recipe.yaml --output-dir output"
+test = { cmd = "sh -c 'rattler-build test --package-file $(ls output/linux-64/libwamr-*.conda | head -n 1)'", depends-on = ["build"] }
+
+[dependencies]
+rattler-build = ">=0.61.4,<0.62"

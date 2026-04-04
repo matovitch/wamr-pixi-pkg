@@ -1,0 +1,31 @@
+name: cd
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Pixi
+        uses: prefix-dev/setup-pixi@v0.8.1
+        with:
+          cache: true
+
+      - name: Build and test package
+        run: pixi run test
+
+      - name: Upload to prefix.dev
+        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+        env:
+          MATOVITCH_PREFIX_DEV_API_KEY: ${{ secrets.MATOVITCH_PREFIX_DEV_API_KEY }}
+        run: |
+          PACKAGE_PATH=$(ls output/linux-64/libwamr-*.conda | head -n 1)
+          pixi run rattler-build auth login prefix.dev --token "$MATOVITCH_PREFIX_DEV_API_KEY" 
+          pixi run rattler-build upload prefix "$PACKAGE_PATH" --channel libwamr
