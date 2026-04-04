@@ -34,3 +34,8 @@ tests:
         - iwasm --version
         - test -f $PREFIX/include/wamr/wasm_export.h
         - test -f $PREFIX/include/wamr/wasm_c_api.h
+
+about:
+  summary: WebAssembly Micro Runtime (WAMR)
+  license: Apache-2.0
+  homepage: https://github.com/bytecodealliance/wasm-micro-runtime
