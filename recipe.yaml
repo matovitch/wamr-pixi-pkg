@@ -1,6 +1,12 @@
 context:
     name: libwamr
     version: "2.4.4"
+    cmake_common_args: >-
+        -DWAMR_DISABLE_HW_BOUND_CHECK=1
+        -DWAMR_DISABLE_WRITE_GS_BASE=1
+        -DWAMR_BUILD_INTERP=1
+        -DWAMR_BUILD_FAST_INTERP=1
+        -DWAMR_BUILD_LIBC_WASI=1
 
 package:
     name: ${{ name|lower }}
@@ -11,17 +17,23 @@ source:
     sha256: d05b79a0acc4f30cbc1a2c6d8b66234943f2e427224375f4e0d6d12b4d4862db
 
 build:
-    number: 4
-    script:
-        - cd product-mini/platforms/linux
-        - mkdir build && cd build
-        - cmake .. -G Ninja -DCMAKE_INSTALL_PREFIX=$PREFIX -DBUILD_SHARED_LIBS=ON -DWAMR_DISABLE_WRITE_GS_BASE=1 -DWAMR_BUILD_INTERP=1 -DWAMR_BUILD_FAST_INTERP=1 -DWAMR_BUILD_LIBC_WASI=1
-        - ninja install
-        - cmake .. -G Ninja -DCMAKE_INSTALL_PREFIX=$PREFIX -DBUILD_SHARED_LIBS=OFF -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DWAMR_DISABLE_WRITE_GS_BASE=1 -DWAMR_BUILD_INTERP=1 -DWAMR_BUILD_FAST_INTERP=1 -DWAMR_BUILD_LIBC_WASI=1
-        - ninja install
-        - mkdir -p $PREFIX/include/wamr
-        - find $PREFIX/include -maxdepth 1 -name "*.h" -exec mv {} $PREFIX/include/wamr/ \;
-        - strings $PREFIX/lib/libiwasm.so.2 | grep GLIBC_2.3
+    number: 5
+    script: |
+            cd product-mini/platforms/linux
+            mkdir build && cd build
+            cmake .. -G Ninja \
+                    -DCMAKE_INSTALL_PREFIX=$PREFIX \
+                    -DBUILD_SHARED_LIBS=ON \
+                    ${{ cmake_common_args }}
+            ninja install
+            cmake .. -G Ninja \
+                    -DCMAKE_INSTALL_PREFIX=$PREFIX \
+                    -DBUILD_SHARED_LIBS=OFF \
+                    ${{ cmake_common_args }} \
+                    -DCMAKE_POSITION_INDEPENDENT_CODE=ON
+            ninja install
+            mkdir -p $PREFIX/include/wamr
+            find $PREFIX/include -maxdepth 1 -name "*.h" -exec mv {} $PREFIX/include/wamr/ \;
 
 requirements:
     build:
