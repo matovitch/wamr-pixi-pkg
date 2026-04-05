@@ -11,7 +11,7 @@ source:
     sha256: d05b79a0acc4f30cbc1a2c6d8b66234943f2e427224375f4e0d6d12b4d4862db
 
 build:
-    number: 3
+    number: 4
     script:
         - cd product-mini/platforms/linux
         - mkdir build && cd build
@@ -21,6 +21,7 @@ build:
         - ninja install
         - mkdir -p $PREFIX/include/wamr
         - find $PREFIX/include -maxdepth 1 -name "*.h" -exec mv {} $PREFIX/include/wamr/ \;
+        - strings $PREFIX/lib/libiwasm.so.2 | grep GLIBC_2.3
 
 requirements:
     build:
@@ -28,10 +29,6 @@ requirements:
         - ${{ compiler('clangxx') }}
         - cmake
         - ninja
-        - sysroot_linux-64 ==2.17  # Add this here!
-    host:
-        # This is the anchor. It tells the compiler to use the Conda
-        # headers/libs instead of /usr/include and /usr/lib.
         - sysroot_linux-64 ==2.17
 
 tests:
